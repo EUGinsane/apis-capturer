@@ -5,6 +5,7 @@ const fields = [
   { value: "path", label: "PATH" },
   { value: "method", label: "METHOD" },
   { value: "body", label: "BODY" },
+  { value: "status", label: "STATUS" },
   { value: "response", label: "RESPONSE" }
 ];
 const json2csvParser = new Parser({ fields });
@@ -15,17 +16,18 @@ const json2csvParser = new Parser({ fields });
   const page = await browser.newPage();
   await page.goto("https://app.flood.io/");
 
-  page.on("requestfinished", async request => {
+  page.on("request", async request => {
     const url = request.url();
     const urlPrefix = "https://api.flood.io";
     if (url.includes(urlPrefix)) {
+      const response = await request.response();
+      console.log(response.status)
       apiArr.push({
         path: url.replace(urlPrefix, ""),
         method: request.method(),
         body: request.postData(),
-        response: JSON.stringify(
-          await request.response().then(res => res.json())
-        )
+        status: response.status(),
+        response: JSON.stringify(await response.json())
       });
       console.log(`captured: ${apiArr.length}`);
     }
